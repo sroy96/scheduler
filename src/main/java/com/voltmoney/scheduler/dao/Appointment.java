@@ -15,7 +15,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 public class Appointment {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long appointmentId;
     @Column(name = "slot")
     private String slot; // "0-1"

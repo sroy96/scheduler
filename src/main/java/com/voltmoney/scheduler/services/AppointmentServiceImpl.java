@@ -16,6 +16,7 @@ import com.voltmoney.scheduler.services.strategies.ScheduleRequestedSlotByOperat
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.Optional;
 import java.util.Random;
 
@@ -39,6 +40,7 @@ public class AppointmentServiceImpl implements AppointmentScheduler {
     ScheduleRequestedSlotAnyOperator scheduleRequestedSlotAnyOperator;
 
     private void validateRequest(AppointmentRequest appointmentRequest) {
+
         if (appointmentRequest.getSlot().getEndTime() - appointmentRequest.getSlot().getStartTime() != 1) {
             if (!(appointmentRequest.getSlot().getEndTime() == 0 && appointmentRequest.getSlot().getStartTime() == 23)) {
                 throw new BadRequest("ONLY_ONE_HOUR_SLOT_CAN_BE_BOOKED");
@@ -49,30 +51,31 @@ public class AppointmentServiceImpl implements AppointmentScheduler {
 
     @Override
     public AppointmentResponse scheduleAppointment(AppointmentRequestByOperator appointmentRequestByOperator) {
-
+        if (appointmentRequestByOperator.getSlot().getDate().isBefore(LocalDate.now())) {
+            throw new BadRequest("CANNOT_BOOK_BACKDATED_APPOINTMENTS");
+        }
         Slot allocatedSlot = null;
         AppointmentRequest appointmentRequest = null;
 
 
-
-        if (null!=appointmentRequestByOperator.getOperatorId()) {
-            appointmentRequest =  appointmentRequestByOperator;
-            if (appointmentRequest.getSlot().getStartTime()!=null && appointmentRequest.getSlot().getEndTime()!=null) {
+        if (null != appointmentRequestByOperator.getOperatorId()) {
+            appointmentRequest = appointmentRequestByOperator;
+            if (appointmentRequest.getSlot().getStartTime() != null && appointmentRequest.getSlot().getEndTime() != null) {
                 validateRequest(appointmentRequest);
                 allocatedSlot = scheduleRequestedSlotByOperator.scheduleAppointment(appointmentRequest);
             } else {
                 allocatedSlot = scheduleOperatorAppointment.scheduleAppointment(appointmentRequest);
             }
         } else {
-            appointmentRequest =(AppointmentRequest) appointmentRequestByOperator;
-            if (appointmentRequest.getSlot().getStartTime()!=null && appointmentRequest.getSlot().getEndTime()!=null) {
+            appointmentRequest = (AppointmentRequest) appointmentRequestByOperator;
+            if (appointmentRequest.getSlot().getStartTime() != null && appointmentRequest.getSlot().getEndTime() != null) {
                 validateRequest(appointmentRequest);
                 allocatedSlot = scheduleRequestedSlotAnyOperator.scheduleAppointment(appointmentRequest);
             } else {
                 allocatedSlot = scheduleAnyStrategy.scheduleAppointment(appointmentRequest);
             }
         }
-        Long appointmentId = new Random().nextLong();
+        Long appointmentId = Math.abs(new Random().nextLong());
         bookingRepository.save(new Appointment(appointmentId,
                 (allocatedSlot.getStartTime() + "-" + allocatedSlot.getEndTime()),
                 appointmentRequest.getSlot().getDate(),
@@ -85,6 +88,9 @@ public class AppointmentServiceImpl implements AppointmentScheduler {
 
     @Override
     public AppointmentResponse updateAppointment(AppointmentRequestByOperator appointmentRequest, Long appointmentId) {
+        if (appointmentRequest.getSlot().getDate().isBefore(LocalDate.now())) {
+            throw new BadRequest("CANNOT_BOOK_BACKDATED_APPOINTMENTS");
+        }
         if (appointmentId == null) {
             throw new BadRequest("APPOINTMENT_ID_REQUIRED");
         }
@@ -95,7 +101,7 @@ public class AppointmentServiceImpl implements AppointmentScheduler {
 
 
         Slot allocatedSlot = null;
-        if (null!=appointmentRequest.getOperatorId()) {
+        if (null != appointmentRequest.getOperatorId()) {
             if (appointmentRequest.getSlot().getStartTime() != null && appointmentRequest.getSlot().getEndTime() != null) {
                 validateRequest(appointmentRequest);
                 allocatedSlot = scheduleRequestedSlotByOperator.scheduleAppointment(appointmentRequest);

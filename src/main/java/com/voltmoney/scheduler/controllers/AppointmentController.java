@@ -26,7 +26,7 @@ public class AppointmentController {
     }
 
     @PutMapping(UrlConstants.UPDATE_APPOINTMENT)
-    public ResponseEntity<BaseResponse> updateAppointment(@RequestBody AppointmentRequestByOperator appointmentRequest, @RequestParam Long appointmentId) {
+    public ResponseEntity<BaseResponse> updateAppointment(@RequestBody AppointmentRequestByOperator appointmentRequest, @PathVariable Long appointmentId) {
         return new ResponseEntity<>(appointmentScheduler.updateAppointment(appointmentRequest, appointmentId), HttpStatus.OK);
     }
 

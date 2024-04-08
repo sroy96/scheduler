@@ -5,9 +5,9 @@ public class UrlConstants {
 
     public final static String BASE = "/api/v1";
     public final static String BOOK_APPOINTMENT = "/appointment";
-    public final static String UPDATE_APPOINTMENT = "/appointment";
+    public final static String UPDATE_APPOINTMENT = "/appointment/{appointmentId}";
 
-    public final static String CANCEL_APPOINTMENT = "/{appointment_id}";
+    public final static String CANCEL_APPOINTMENT = "/appointment/{appointmentId}";
 
     public final static String OPERATOR_APPOINTMENT = "/operator";
 
